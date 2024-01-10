@@ -3,6 +3,10 @@
 
 #include <arrow/pretty_print.h>
 #include <arrow/table.h>
+#include <arrow/csv/writer.h>
+#include <arrow/io/stdio.h>
+#include <arrow/io/api.h>
+#include <arrow/status.h>
 
 #include "execution/ResultProcessing.h"
 #include "runtime/TableBuilder.h"
@@ -31,6 +35,18 @@ class TableRetriever : public execution::ResultProcessor {
       result = resultTable.value()->get();
    }
 };
+
+void printTableAsCsv(const std::shared_ptr<arrow::Table>& table) {
+   // Create an Arrow output stream to write to console
+   auto output_stream = arrow::io::StdoutStream();
+
+   // Write the table to the output stream
+   arrow::csv::WriteOptions writeOptions = arrow::csv::WriteOptions::Defaults();
+   writeOptions.null_string = "null";
+   if (!arrow::csv::WriteCSV(*table, writeOptions, &output_stream).ok()) {
+      std::cout << "Failed to write CSV." << std::endl;
+   }
+}
 
 void printTable(const std::shared_ptr<arrow::Table>& table) {
    // Do not output anything for insert or copy statements
@@ -123,6 +139,7 @@ class TablePrinter : public execution::ResultProcessor {
       printTable(table);
    }
 };
+
 class BatchedTablePrinter : public execution::ResultProcessor {
    void process(runtime::ExecutionContext* executionContext) override {
       for (size_t i = 0;; i++) {
@@ -133,6 +150,18 @@ class BatchedTablePrinter : public execution::ResultProcessor {
       }
    }
 };
+
+class CsvTablePrinter : public execution::ResultProcessor {
+   void process(runtime::ExecutionContext* executionContext) override {
+      for (size_t i = 0;; i++) {
+         auto resultTable = executionContext->getResultOfType<runtime::ResultTable>(i);
+         if (!resultTable) return;
+         auto table = resultTable.value()->get();
+         printTableAsCsv(table);
+      }
+   }
+};
+
 } // namespace
 
 std::unique_ptr<execution::ResultProcessor> execution::createTableRetriever(std::shared_ptr<arrow::Table>& result) {
@@ -145,4 +174,8 @@ std::unique_ptr<execution::ResultProcessor> execution::createTablePrinter() {
 
 std::unique_ptr<execution::ResultProcessor> execution::createBatchedTablePrinter() {
    return std::make_unique<BatchedTablePrinter>();
+}
+
+std::unique_ptr<execution::ResultProcessor> execution::createCsvTablePrinter() {
+   return std::make_unique<CsvTablePrinter>();
 }

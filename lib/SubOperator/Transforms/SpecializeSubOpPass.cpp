@@ -124,7 +124,9 @@ class MultiMapAsHashIndexedView : public mlir::RewritePattern {
          mlir::OpBuilder::InsertionGuard guard(rewriter);
          rewriter.setInsertionPoint(lookupOp);
          auto [hashDefLookup, hashRefLookup] = createColumn(rewriter.getIndexType(), "hj", "hash");
-         auto [lookupPredDef, lookupPredRef] = createColumn(rewriter.getI1Type(), "lookup", "pred");
+         auto lookupPred = createColumn(rewriter.getI1Type(), "lookup", "pred");
+         auto lookupPredDef = lookupPred.first;
+         auto lookupPredRef = lookupPred.second;
          auto mapOp = rewriter.create<mlir::subop::MapOp>(loc, lookupOp.getStream(), rewriter.getArrayAttr({hashDefLookup}));
          auto [listDef, listRef] = createColumn(entryRefListType, "lookup", "list");
          auto lookupRef = lookupOp.getRef();

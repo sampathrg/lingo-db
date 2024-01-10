@@ -331,7 +331,13 @@ std::unique_ptr<QueryExecutionConfig> createQueryExecutionConfig(execution::Exec
    } else {
       config->executionBackend = createDefaultLLVMBackend();
    }
-   config->resultProcessor = execution::createTablePrinter();
+   const char* printType = std::getenv("LINGODB_PRINT_TYPE");
+   if (printType && std::string(printType) == "csv") {
+      config->resultProcessor = execution::createCsvTablePrinter();
+   } 
+   else {
+      config->resultProcessor = execution::createTablePrinter();
+   }
    if (runMode == ExecutionMode::SPEED || runMode == ExecutionMode::EXTREME_CHEAP) {
       config->queryOptimizer->disableVerification();
       config->executionBackend->disableVerification();
