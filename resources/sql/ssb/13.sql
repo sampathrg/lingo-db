@@ -1,4 +1,4 @@
-select sum(lo_extendedprice*lo_discount) as revenue
+select sum(cast(lo_extendedprice as int8) * cast(lo_discount as int8)) as revenue
 from lineorder, date
 where lo_orderdate = d_datekey
 and d_weeknuminyear = 6

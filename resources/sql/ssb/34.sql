@@ -1,4 +1,4 @@
-select c_city, s_city, d_year, sum(lo_revenue)
+select d_year, c_city, s_city, sum(cast(lo_revenue as int8))
 as revenue
 from customer, lineorder, supplier, date
 where lo_custkey = c_custkey
@@ -10,4 +10,3 @@ and (s_city='UNITED KI1'
    or s_city='UNITED KI5')
 and d_yearmonth = 'Dec1997'
 group by c_city, s_city, d_year
-order by d_year asc, revenue desc;

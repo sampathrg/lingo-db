@@ -1,5 +1,4 @@
-select d_year, c_nation,
-sum(lo_revenue - lo_supplycost) as profit
+select d_year, c_nation, sum(cast(lo_revenue as int8) - cast(lo_supplycost as int8)) as profit
 from date, customer, supplier, part, lineorder
 where lo_custkey = c_custkey
 and lo_suppkey = s_suppkey
@@ -10,4 +9,3 @@ and s_region = 'AMERICA'
 and (p_mfgr = 'MFGR#1'
    or p_mfgr = 'MFGR#2')
 group by d_year, c_nation
-order by d_year, c_nation;
